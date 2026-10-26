@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block content %}
+<div id="dash-root"><div class="loading-overlay"><span class="spinner-border spinner-border-sm me-2"></span>Loading dashboard...</div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

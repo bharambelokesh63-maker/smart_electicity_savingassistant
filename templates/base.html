@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Smart Electricity Saving Assistant{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    try { var t = localStorage.getItem('sea-theme'); if (t) document.documentElement.setAttribute('data-bs-theme', t); } catch (e) {}
+  </script>
+</head>
+<body>
+{% set nav = [
+  ('dashboard', '/', 'bi-speedometer2', 'Dashboard'),
+  ('appliances', '/appliances', 'bi-plug', 'Appliances'),
+  ('calculator', '/calculator', 'bi-calculator', 'Calculator'),
+  ('recommendations', '/recommendations', 'bi-lightbulb', 'AI Recommendations'),
+  ('scheduler', '/scheduler', 'bi-calendar2-week', 'AI Scheduler'),
+  ('algorithms', '/algorithms', 'bi-cpu', 'Algorithm Lab'),
+  ('reports', '/reports', 'bi-bar-chart-line', 'Reports')
+] %}
+<div class="app-shell">
+  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar">
+    <div class="brand">
+      <i class="bi bi-lightning-charge-fill"></i>
+      <div><strong>Smart Electricity</strong><span>Saving Assistant</span></div>
+    </div>
+    <nav class="nav flex-column">
+      {% for key, href, icon, label in nav %}
+      <a class="nav-link {{ 'active' if active == key }}" href="{{ href }}"><i class="bi {{ icon }}"></i> {{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-foot">
+      <i class="bi bi-info-circle"></i> Classical AI: A*, Best-First, Hill Climbing, CSP, Forward Chaining, Bayesian Network.
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar">
+      <button class="btn btn-outline-secondary d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-label="Open menu">
+        <i class="bi bi-list"></i>
+      </button>
+      <h1 class="page-title">{% block heading %}{% endblock %}</h1>
+      <div class="ms-auto d-flex gap-2 align-items-center">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-success dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-database"></i> <span class="d-none d-sm-inline">Demo data</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><button class="dropdown-item" id="btn-load-demo"><i class="bi bi-download"></i> Load sample data</button></li>
+            <li><button class="dropdown-item text-danger" id="btn-reset-demo"><i class="bi bi-trash"></i> Reset demonstration data</button></li>
+          </ul>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" id="theme-toggle" aria-label="Toggle dark mode"><i class="bi bi-moon-stars"></i></button>
+      </div>
+    </header>
+    <main class="content">
+      {% block content %}{% endblock %}
+      <footer class="foot-note">
+        All figures are estimates calculated from the appliance data and tariff you enter. Demonstration data is labelled as such.
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="confirm-title">Please confirm</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="confirm-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

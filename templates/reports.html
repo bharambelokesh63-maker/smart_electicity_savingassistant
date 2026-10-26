@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Reports - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}Energy Report{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <div class="text-muted small flex-grow-1">Everything below is calculated from your saved appliances, tariff and the latest scheduler/algorithm runs.</div>
+  <button class="btn btn-outline-secondary btn-sm" id="btn-refresh"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+  <a class="btn btn-success btn-sm" id="btn-csv" href="/api/energy-report/csv"><i class="bi bi-download"></i> Download CSV</a>
+</div>
+<div id="report-root"><div class="loading-overlay"><span class="spinner-border spinner-border-sm me-2"></span>Building report...</div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/reports.js') }}"></script>{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Calculator - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}Electricity Calculator{% endblock %}
+{% block content %}
+<div class="alert alert-warning small">
+  <i class="bi bi-exclamation-triangle"></i> <strong>Estimated energy charge &ne; your electricity bill.</strong>
+  A real bill can include fixed charges, taxes/duties, slab-based tariffs, fuel adjustments and meter-reading differences.
+  This page models only the energy charge, plus the simple fixed charge and tax percentage you enter below.
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-cash-coin"></i> Tariff settings</div>
+      <form class="card-body" id="tariff-form" novalidate>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label" for="t-base_rate">Electricity tariff (&#8377; per kWh) *</label>
+            <input type="number" step="any" min="0" class="form-control" id="t-base_rate" required><div class="invalid-feedback"></div></div>
+          <div class="col-6"><label class="form-label" for="t-fixed_charge">Fixed charge (&#8377;/month)</label>
+            <input type="number" step="any" min="0" class="form-control" id="t-fixed_charge"><div class="invalid-feedback"></div></div>
+          <div class="col-6"><label class="form-label" for="t-tax_percent">Tax / duty (%)</label>
+            <input type="number" step="any" min="0" max="100" class="form-control" id="t-tax_percent"><div class="invalid-feedback"></div></div>
+          <div class="col-12"><div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="t-tou_enabled">
+            <label class="form-check-label" for="t-tou_enabled">Time-of-use (ToU) hourly rates <span class="text-muted small">- used by the AI scheduler</span></label></div></div>
+          <div id="tou-fields" class="col-12"><div class="row g-3">
+            <div class="col-4"><label class="form-label small" for="t-peak_start">Peak from</label><input type="number" min="0" max="23" class="form-control" id="t-peak_start"></div>
+            <div class="col-4"><label class="form-label small" for="t-peak_end">Peak to</label><input type="number" min="0" max="24" class="form-control" id="t-peak_end"></div>
+            <div class="col-4"><label class="form-label small" for="t-peak_multiplier">Peak &times;</label><input type="number" step="any" min="0.1" max="5" class="form-control" id="t-peak_multiplier"></div>
+            <div class="col-4"><label class="form-label small" for="t-offpeak_start">Off-peak from</label><input type="number" min="0" max="23" class="form-control" id="t-offpeak_start"></div>
+            <div class="col-4"><label class="form-label small" for="t-offpeak_end">Off-peak to</label><input type="number" min="0" max="24" class="form-control" id="t-offpeak_end"></div>
+            <div class="col-4"><label class="form-label small" for="t-offpeak_multiplier">Off-peak &times;</label><input type="number" step="any" min="0.1" max="5" class="form-control" id="t-offpeak_multiplier"></div>
+            <div class="col-12 small text-muted">Hours are 0-24 (e.g. off-peak 22 to 6 wraps past midnight). These multipliers are <strong>illustrative assumptions</strong> - enter your utility's actual time-of-day rates. The flat tariff above is used for the energy-charge formula.</div>
+          </div></div>
+        </div>
+        <button class="btn btn-success mt-3" type="submit" id="btn-save-tariff"><i class="bi bi-save"></i> Save tariff</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-calculator"></i> Quick what-if calculator <span class="text-muted small fw-normal">(nothing is saved)</span></div>
+      <form class="card-body" id="whatif-form" novalidate>
+        <div class="row g-3">
+          <div class="col-6 col-md-3"><label class="form-label" for="w-power_w">Power (W)</label><input type="number" step="any" class="form-control" id="w-power_w" value="1500"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="w-quantity">Quantity</label><input type="number" class="form-control" id="w-quantity" value="1"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="w-hours_per_day">Hours/day</label><input type="number" step="any" class="form-control" id="w-hours_per_day" value="6"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="w-days_per_month">Days/month</label><input type="number" class="form-control" id="w-days_per_month" value="30"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="w-standby_w">Standby (W)</label><input type="number" step="any" class="form-control" id="w-standby_w" value="0"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="w-base_rate">Tariff (&#8377;/kWh)</label><input type="number" step="any" class="form-control" id="w-base_rate" value="8"></div>
+          <div class="col-12 col-md-6 d-flex align-items-end"><button class="btn btn-navy w-100" type="submit">Calculate</button></div>
+        </div>
+        <div id="whatif-out" class="mt-3"></div>
+        <div class="small text-muted mt-3">
+          <code class="formula">Daily kWh = Power(W) &times; Quantity &times; Hours/day &divide; 1000</code>
+          <code class="formula">Monthly kWh = Daily kWh &times; Operating days</code>
+          <code class="formula">Energy charge = Monthly kWh &times; Tariff</code>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-table"></i> Appliance-wise calculation (saved appliances)
+    <button class="btn btn-sm btn-outline-success ms-auto" id="btn-snapshot"><i class="bi bi-camera"></i> Save snapshot</button></div>
+  <div class="table-wrap"><table class="table table-sm table-hover mb-0">
+    <thead><tr><th>Appliance</th><th>Power &times; Qty</th><th>Hours/day</th><th>Days/mo</th><th>Daily kWh</th><th>Standby kWh/day</th><th>Monthly kWh</th><th>Energy charge</th><th>Share</th></tr></thead>
+    <tbody id="calc-body"></tbody><tfoot id="calc-foot"></tfoot></table></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5"><div class="card h-100"><div class="card-header"><i class="bi bi-receipt"></i> Estimated bill breakdown</div>
+    <div class="card-body" id="bill-box"></div></div></div>
+  <div class="col-lg-7"><div class="card h-100"><div class="card-header"><i class="bi bi-clock-history"></i> Saved snapshots</div>
+    <div class="table-wrap"><table class="table table-sm mb-0"><thead><tr><th>When</th><th>Appliances</th><th>Monthly kWh</th><th>Tariff</th><th>Energy charge</th><th>Est. bill</th></tr></thead>
+      <tbody id="snap-body"></tbody></table></div></div></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/calculator.js') }}"></script>{% endblock %}

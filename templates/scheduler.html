@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}AI Scheduler - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}AI Appliance Scheduler{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-sliders2"></i> Scheduling window &amp; constraints</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="s-method">Algorithm</label>
+          <select class="form-select" id="s-method">
+            <option value="astar">A* Search (optimal for the model)</option>
+            <option value="best_first">Best-First Search (greedy)</option>
+            <option value="hill_climbing">Hill Climbing (local search)</option>
+            <option value="csp">CSP Backtracking (first valid)</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Unavailable hours <span class="text-muted small">- flexible appliances may not run (click to toggle)</span></label>
+          <div class="hour-chips" id="chips-block"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Preferred operating hours <span class="text-muted small">- optional, soft preference</span></label>
+          <div class="hour-chips" id="chips-pref"></div>
+        </div>
+        <div class="row g-3">
+          <div class="col-6"><label class="form-label" for="s-capacity">Max load per hour (kW)</label>
+            <input type="number" step="any" min="0" class="form-control" id="s-capacity" placeholder="No limit"><div class="invalid-feedback"></div></div>
+          <div class="col-6"><label class="form-label" for="s-shift">Shift penalty (&#8377;/hour moved)</label>
+            <input type="number" step="any" min="0" class="form-control" id="s-shift" value="3"></div>
+        </div>
+        <div class="small text-muted mt-3">Fixed appliances stay at their preferred start. Flexible ones may move inside their own operating window. The penalty (scaled by priority) discourages needless moves so savings are not bought with inconvenience.</div>
+        <button class="btn btn-success w-100 mt-3" id="btn-run"><i class="bi bi-play-fill"></i> Optimize schedule</button>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header"><i class="bi bi-graph-up-arrow"></i> Result summary</div>
+      <div class="card-body" id="sched-summary"><p class="text-muted mb-0">Choose constraints and press <strong>Optimize schedule</strong>. The same calculation engine as the Algorithm Lab runs on your saved appliances and tariff.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="sched-results" class="d-none">
+  <div class="row g-3 mb-3">
+    <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-clock"></i> Original schedule <span class="badge text-bg-secondary ms-auto" id="orig-cost"></span></div>
+      <div class="card-body"><div id="tl-orig"></div></div></div></div>
+    <div class="col-xl-6"><div class="card h-100"><div class="card-header"><i class="bi bi-magic"></i> Optimized schedule <span class="badge badge-soft-green ms-auto" id="opt-cost"></span></div>
+      <div class="card-body"><div id="tl-opt"></div></div></div></div>
+  </div>
+  <div id="tl-legend" class="mb-3"></div>
+  <div class="row g-3">
+    <div class="col-lg-7"><div class="card h-100"><div class="card-header"><i class="bi bi-activity"></i> Hourly load</div>
+      <div class="card-body"><div class="chart-box"><canvas id="ch-sched-load"></canvas></div></div></div></div>
+    <div class="col-lg-5"><div class="card h-100"><div class="card-header"><i class="bi bi-arrow-right-circle"></i> Changes &amp; explanation</div>
+      <div class="card-body" id="sched-changes"></div></div></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/scheduler.js') }}"></script>{% endblock %}

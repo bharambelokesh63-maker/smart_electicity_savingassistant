@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Algorithm Lab - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}AI Algorithm Laboratory{% endblock %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header"><i class="bi bi-sliders"></i> Shared scheduling constraints <span class="text-muted small fw-normal">(used by Best-First, A*, Hill Climbing and CSP)</span></div>
+  <div class="card-body row g-3">
+    <div class="col-md-4"><label class="form-label small" for="lab-capacity">Max load per hour (kW)</label>
+      <input type="number" step="any" min="0" class="form-control form-control-sm" id="lab-capacity" placeholder="No limit"></div>
+    <div class="col-md-4"><label class="form-label small" for="lab-blocked">Unavailable hours (comma separated, 0-23)</label>
+      <input class="form-control form-control-sm" id="lab-blocked" placeholder="e.g. 9,10,11"></div>
+    <div class="col-md-4"><label class="form-label small" for="lab-shift">Shift penalty (&#8377; per hour moved)</label>
+      <input type="number" step="any" min="0" class="form-control form-control-sm" id="lab-shift" value="3"></div>
+    <div class="col-12 small text-muted">Every algorithm reads your saved appliances and tariff, so results change when your data changes. Tip: set a low capacity (for example 2.5 kW) to see backtracking and capacity rejections in action.</div>
+  </div>
+</div>
+
+<ul class="nav nav-pills algo-tabs gap-2 mb-3" id="algo-tabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#p-best-first">A. Best-First</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p-a-star">B. A* Search</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p-hill-climbing">C. Hill Climbing</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p-csp">D. CSP Backtracking</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p-forward-chaining">E. Forward Chaining</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#p-bayesian-network">F. Bayesian Network</button></li>
+</ul>
+
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="p-best-first"><div class="card"><div class="card-body">
+    <h5>Best-First Search (greedy)</h5>
+    <p class="text-muted small mb-2">States are partial schedules. A priority queue always expands the state with the lowest heuristic h(n) = sum of each unplaced appliance's cheapest possible placement (ties broken by lower g). Fast, but with no optimality guarantee.</p>
+    <div class="row g-2 align-items-end mb-3"><div class="col-sm-4"><label class="form-label small" for="bf-max">Max expansions</label><input type="number" class="form-control form-control-sm" id="bf-max" value="20000"></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="best-first"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-best-first"></div></div></div></div>
+
+  <div class="tab-pane fade" id="p-a-star"><div class="card"><div class="card-body">
+    <h5>A* Search</h5>
+    <p class="text-muted small mb-2">Same state space, priority f(n) = g(n) + h(n), where g is the real accumulated cost (energy cost + soft penalty) and h is admissible and consistent. Goal: every flexible appliance placed with all hard constraints satisfied. Optimal for the modelled objective when the search finishes within the expansion limit.</p>
+    <div class="row g-2 align-items-end mb-3"><div class="col-sm-4"><label class="form-label small" for="as-max">Max expansions</label><input type="number" class="form-control form-control-sm" id="as-max" value="20000"></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="a-star"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-a-star"></div></div></div></div>
+
+  <div class="tab-pane fade" id="p-hill-climbing"><div class="card"><div class="card-body">
+    <h5>Hill Climbing (steepest descent on cost)</h5>
+    <p class="text-muted small mb-2">Starts from your original schedule (or a CSP-repaired valid one), then repeatedly moves the single appliance that lowers the objective the most. Stops at a local optimum or at the iteration limit.</p>
+    <div class="row g-2 align-items-end mb-3"><div class="col-sm-4"><label class="form-label small" for="hc-max">Max iterations</label><input type="number" class="form-control form-control-sm" id="hc-max" value="100"></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="hill-climbing"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-hill-climbing"></div></div></div></div>
+
+  <div class="tab-pane fade" id="p-csp"><div class="card"><div class="card-body">
+    <h5>Constraint Satisfaction with Backtracking</h5>
+    <p class="text-muted small mb-2">Variables = flexible appliances; domains = permitted start hours; constraints = window, duration, unavailable hours and hourly capacity. Recursive backtracking with Minimum-Remaining-Values variable selection.</p>
+    <div class="row g-2 align-items-end mb-3"><div class="col-sm-4"><label class="form-label small" for="csp-order">Value ordering</label>
+      <select class="form-select form-select-sm" id="csp-order"><option value="cost">Cheapest placement first</option><option value="preferred">Closest to preferred time first</option></select></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="csp"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-csp"></div></div></div></div>
+
+  <div class="tab-pane fade" id="p-forward-chaining"><div class="card"><div class="card-body">
+    <h5>Forward Chaining (rule-based inference)</h5>
+    <p class="text-muted small mb-2">Facts are asserted from your appliance data; IF-THEN rules fire repeatedly until no new fact can be derived. Every firing is logged.</p>
+    <div class="row g-2 align-items-end mb-3">
+      <div class="col-6 col-md-3"><label class="form-label small" for="fc-share">High-consumer share (%)</label><input type="number" class="form-control form-control-sm" id="fc-share" value="25"></div>
+      <div class="col-6 col-md-3"><label class="form-label small" for="fc-kwh">High-consumer kWh/month</label><input type="number" class="form-control form-control-sm" id="fc-kwh" value="100"></div>
+      <div class="col-6 col-md-3"><label class="form-label small" for="fc-standby">Avoidable standby (%)</label><input type="number" class="form-control form-control-sm" id="fc-standby" value="80"></div>
+      <div class="col-6 col-md-3"><label class="form-label small" for="fc-reduce">Max usage cut (fraction)</label><input type="number" step="any" class="form-control form-control-sm" id="fc-reduce" value="0.1"></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="forward-chaining"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-forward-chaining"></div></div></div></div>
+
+  <div class="tab-pane fade" id="p-bayesian-network"><div class="card"><div class="card-body">
+    <h5>Bayesian Network (household consumption category)</h5>
+    <p class="text-muted small mb-2">A 4-node network: UsageIntensity, HighPowerCount and StandbyLevel are parents of ConsumptionCategory. Exact inference by enumeration. Evidence is derived from your appliances, or you can set it manually. <strong>Educational estimate under the stated assumptions - not a measurement or forecast.</strong></p>
+    <div class="row g-2 align-items-end mb-3">
+      <div class="col-md-3"><label class="form-label small" for="bn-usage">Usage intensity</label><select class="form-select form-select-sm bn-sel" id="bn-usage" data-var="UsageIntensity"></select></div>
+      <div class="col-md-3"><label class="form-label small" for="bn-power">High-power appliances</label><select class="form-select form-select-sm bn-sel" id="bn-power" data-var="HighPowerCount"></select></div>
+      <div class="col-md-3"><label class="form-label small" for="bn-standby">Standby level</label><select class="form-select form-select-sm bn-sel" id="bn-standby" data-var="StandbyLevel"></select></div>
+      <div class="col-auto"><button class="btn btn-success btn-sm run-btn" data-algo="bayesian-network"><i class="bi bi-play-fill"></i> Run Algorithm</button></div></div>
+    <div class="lab-out" id="out-bayesian-network"></div></div></div></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/algorithms.js') }}"></script>{% endblock %}

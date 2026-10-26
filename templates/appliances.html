@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Appliances - Smart Electricity Saving Assistant{% endblock %}
+{% block heading %}Appliance Management{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+  <button class="btn btn-success" id="btn-add"><i class="bi bi-plus-circle"></i> Add appliance</button>
+  <span class="text-muted small" id="count-label"></span>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table table-hover mb-0 align-middle">
+      <thead><tr><th>Appliance</th><th>Power</th><th>Qty</th><th>Hours/day</th><th>Days/mo</th><th>Preferred start</th>
+        <th>Flexible</th><th>Priority</th><th>Monthly kWh</th><th></th></tr></thead>
+      <tbody id="appl-body"><tr><td colspan="10" class="loading-overlay">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="appl-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form class="modal-content" id="appl-form" novalidate>
+      <div class="modal-header"><h5 class="modal-title" id="appl-modal-title">Add appliance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Start from a preset <span class="text-muted small">(optional - values are typical, edit them)</span></label>
+          <select class="form-select" id="f-template"><option value="">Custom appliance</option></select>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-8"><label class="form-label" for="f-name">Appliance name *</label>
+            <input class="form-control" id="f-name" name="name" maxlength="60" required><div class="invalid-feedback"></div></div>
+          <div class="col-md-4"><label class="form-label" for="f-category">Category *</label>
+            <select class="form-select" id="f-category" name="category"></select><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-power_w">Rated power (W) *</label>
+            <input type="number" step="any" min="0" class="form-control" id="f-power_w" name="power_w" required><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-quantity">Quantity *</label>
+            <input type="number" step="1" min="1" class="form-control" id="f-quantity" name="quantity" value="1" required><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-hours_per_day">Avg. hours / day *</label>
+            <input type="number" step="any" min="0" max="24" class="form-control" id="f-hours_per_day" name="hours_per_day" required><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-days_per_month">Operating days / month *</label>
+            <input type="number" step="1" min="1" max="31" class="form-control" id="f-days_per_month" name="days_per_month" value="30" required><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-preferred_start">Preferred start time</label>
+            <select class="form-select" id="f-preferred_start" name="preferred_start"></select><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-priority">Priority</label>
+            <select class="form-select" id="f-priority" name="priority">
+              <option value="1">High (hard to change)</option><option value="2" selected>Medium</option><option value="3">Low (easy to change)</option></select></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-min_hours">Minimum daily hours</label>
+            <input type="number" step="any" min="0" class="form-control" id="f-min_hours" name="min_hours" value="0"><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-max_hours">Maximum daily hours <span class="text-muted small">(optional)</span></label>
+            <input type="number" step="any" min="0" max="24" class="form-control" id="f-max_hours" name="max_hours"><div class="invalid-feedback"></div></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="f-standby_w">Standby power (W) <span class="text-muted small">(optional)</span></label>
+            <input type="number" step="any" min="0" class="form-control" id="f-standby_w" name="standby_w" value="0"><div class="invalid-feedback"></div></div>
+          <div class="col-md-9 d-flex align-items-end">
+            <div class="form-check form-switch fs-6">
+              <input class="form-check-input" type="checkbox" role="switch" id="f-flexible" name="flexible">
+              <label class="form-check-label" for="f-flexible">Flexible - the scheduler may move this appliance to another time</label></div></div>
+          <div class="col-12" id="window-row">
+            <div class="border rounded p-3">
+              <div class="small text-muted mb-2">Allowed operating window for rescheduling (flexible appliances only)</div>
+              <div class="row g-3">
+                <div class="col-6"><label class="form-label" for="f-window_start">Window start</label>
+                  <select class="form-select" id="f-window_start" name="window_start"></select></div>
+                <div class="col-6"><label class="form-label" for="f-window_end">Window end</label>
+                  <select class="form-select" id="f-window_end" name="window_end"></select><div class="invalid-feedback"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-danger mt-3 d-none" id="form-error"></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success" id="btn-save">Save appliance</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/appliances.js') }}"></script>{% endblock %}
