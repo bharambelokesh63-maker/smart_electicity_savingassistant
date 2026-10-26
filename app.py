@@ -17,7 +17,7 @@ log = logging.getLogger("sea")
 
 
 def create_app(config_object=None):
-    app = Flask(__name__)
+    application = Flask(__name__)
     app.config.from_object(config_object or Config)
     dbm.init_app(app)
 
