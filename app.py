@@ -1,23 +1,5 @@
-"""Smart Electricity Saving Assistant - Flask application factory.
-
-Run:  python app.py        (then open http://127.0.0.1:5000)
-"""
-import logging
-
-from flask import Flask, jsonify, request
-from werkzeug.exceptions import HTTPException
-
-from config import Config
-from database import db as dbm
-from routes import (algorithm_routes, appliance_routes, dashboard_routes, page_routes,
-                    report_routes, schedule_routes)
-from routes.helpers import ApiError
-
-log = logging.getLogger("sea")
-
-
 def create_app(config_object=None):
-    application = Flask(__name__)
+    app = Flask(__name__)
     app.config.from_object(config_object or Config)
     dbm.init_app(app)
 
@@ -45,19 +27,21 @@ def create_app(config_object=None):
 
     @app.errorhandler(Exception)
     def unexpected(exc):
-        if isinstance(exc, HTTPException):  # e.g. 400 / 413 / 415 raised by Flask itself
+        if isinstance(exc, HTTPException):
             if wants_json():
                 return jsonify({"success": False, "error": exc.description or exc.name}), exc.code
             return exc
-        # Log details server-side; never expose stack traces to the user.
+
         log.exception("Unhandled error: %s", exc)
         if wants_json():
-            return jsonify({"success": False,
-                            "error": "Something went wrong on the server. Please try again."}), 500
+            return jsonify({
+                "success": False,
+                "error": "Something went wrong on the server. Please try again."
+            }), 500
         return "Internal server error", 500
 
     return app
 
 
 if __name__ == "__main__":
-    create_app().run(host="127.0.0.1", port=5000, debug=False)
+    create_app().run(host="0.0.0.0", port=5000, debug=False)
